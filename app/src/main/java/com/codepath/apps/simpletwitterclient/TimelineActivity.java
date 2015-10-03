@@ -10,6 +10,7 @@ import com.loopj.android.http.JsonHttpResponseHandler;
 
 import org.apache.http.Header;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -20,6 +21,8 @@ public class TimelineActivity extends AppCompatActivity {
     private TweetsArrayAdapter aTweets;
     private ArrayList<Tweet> tweets;
     private ListView lvTweets;
+
+    private long lowestTweetUid = Long.MAX_VALUE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,22 +36,46 @@ public class TimelineActivity extends AppCompatActivity {
         lvTweets.setAdapter(aTweets);
 
         client = TwitterApplication.getRestClient();
-        populateTimeline();
+
+        lvTweets.setOnScrollListener(new EndlessScrollListener() {
+            @Override
+            public boolean onLoadMore(int page, int totalItemCount) {
+                populateTimeline(lowestTweetUid);
+
+                return true; // only if more loaded, else return false
+            }
+        });
+
+        populateTimeline(lowestTweetUid);
     }
 
-    private void populateTimeline() {
-        client.getHomeTimeline(new JsonHttpResponseHandler() {
+    private void populateTimeline(final long lowestValue) {
+        JsonHttpResponseHandler handler = new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-                Log.d("DEBUG", response.toString());
-
-                aTweets.addAll(Tweet.fromJsonArray(response));
+                for (int i = 0; i < response.length(); i++) {
+                    try {
+                        Tweet tweet = Tweet.fromJson(response.getJSONObject(i));
+                        aTweets.add(tweet);
+                        if (tweet.getUid() < lowestTweetUid) {
+                            lowestTweetUid = tweet.getUid();
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
                 Log.d("DEBUG", errorResponse.toString());
             }
-        });
+        };
+
+        if (lowestValue == Long.MAX_VALUE) {
+            client.getHomeTimeline(handler);
+        } else {
+            client.getHomeTimeline(lowestValue - 1, handler);
+        }
     }
 }

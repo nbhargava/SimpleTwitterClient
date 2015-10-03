@@ -4,5 +4,6 @@
     <string name="app_name">Simple Twitter Client</string>
     <string name="login_label">Connect to Twitter</string>
     <string name="title_activity_timeline">Home Timeline</string>
+    <string name="twitter_profile_image">Twitter profile image</string>
 
 </resources>
