@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.codepath.apps.simpletwitterclient.models.Tweet;
 import com.codepath.apps.simpletwitterclient.models.User;
@@ -154,7 +153,11 @@ public class TimelineActivity extends AppCompatActivity implements ComposeTweetD
 
     @Override
     public void onFinishComposeDialog(String inputText) {
-        Toast.makeText(this, inputText, Toast.LENGTH_SHORT).show();
+        // Don't post a tweet if the tweet is empty
+        if (inputText.isEmpty()) {
+            return;
+        }
+
         client.postTweet(inputText, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
