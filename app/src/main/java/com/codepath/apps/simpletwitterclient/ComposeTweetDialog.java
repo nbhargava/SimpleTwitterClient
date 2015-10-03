@@ -3,6 +3,8 @@ package com.codepath.apps.simpletwitterclient;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,7 +22,10 @@ import com.squareup.picasso.Picasso;
  */
 public class ComposeTweetDialog extends DialogFragment {
 
+    private static final int MAX_TWEET_LENGTH = 140;
+
     private EditText etComposeTweet;
+    private TextView tvCharactersLeft;
     private Button btPostTweet;
 
     public interface ComposeTweetDialogListener {
@@ -56,8 +61,34 @@ public class ComposeTweetDialog extends DialogFragment {
         User user = args.getParcelable("user");
         getDialog().setTitle(title);
 
+        tvCharactersLeft = (TextView) view.findViewById(R.id.tvCharactersLeft);
+
         etComposeTweet = (EditText) view.findViewById(R.id.etComposeTweet);
         etComposeTweet.requestFocus();
+        etComposeTweet.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                int length = editable.length();
+                if (length > MAX_TWEET_LENGTH) {
+                    etComposeTweet.setText(editable.toString().substring(0, MAX_TWEET_LENGTH));
+                    etComposeTweet.clearFocus();
+                    length = MAX_TWEET_LENGTH;
+                }
+
+                tvCharactersLeft.setText("" + (MAX_TWEET_LENGTH - length));
+            }
+        });
+
         btPostTweet = (Button) view.findViewById(R.id.btPostTweet);
         btPostTweet.setOnClickListener(new View.OnClickListener() {
             @Override

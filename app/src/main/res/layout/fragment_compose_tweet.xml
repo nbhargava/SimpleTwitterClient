@@ -20,9 +20,9 @@
         android:layout_alignBottom="@+id/ivUserProfileImage"
         android:layout_toRightOf="@+id/ivUserProfileImage"
         android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:gravity="center_vertical" />
+        android:gravity="center_vertical|left"
+        android:layout_toLeftOf="@+id/tvCharactersLeft"
+        android:layout_toStartOf="@+id/tvCharactersLeft" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -45,4 +45,16 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="140"
+        android:id="@+id/tvCharactersLeft"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignBottom="@+id/tvUsername"
+        android:padding="10dp"
+        android:gravity="center_vertical|right" />
 </RelativeLayout>
