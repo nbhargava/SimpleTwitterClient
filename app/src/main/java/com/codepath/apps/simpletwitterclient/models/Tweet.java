@@ -1,7 +1,10 @@
 package com.codepath.apps.simpletwitterclient.models;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 /**
  * Created by nikhil on 9/27/15.
@@ -26,6 +29,20 @@ public class Tweet {
 
 
         return tweet;
+    }
+
+    public static ArrayList<Tweet> fromJson(JSONArray tweetArray) {
+        ArrayList<Tweet> tweets = new ArrayList<>();
+        for (int i = 0; i < tweetArray.length(); i++) {
+            try {
+                JSONObject tweetObject = tweetArray.getJSONObject(i);
+                tweets.add(Tweet.fromJson(tweetObject));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return tweets;
     }
 
     public String getBody() {

@@ -5,5 +5,8 @@
     <string name="login_label">Connect to Twitter</string>
     <string name="title_activity_timeline">Home Timeline</string>
     <string name="twitter_profile_image">Twitter profile image</string>
+    <string name="compose_action">Compose</string>
+    <string name="tweet_fragment_title">Compose Tweet</string>
+    <string name="post_tweet">Post</string>
 
 </resources>
