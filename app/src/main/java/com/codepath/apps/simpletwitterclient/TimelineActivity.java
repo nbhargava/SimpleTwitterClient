@@ -1,6 +1,11 @@
 package com.codepath.apps.simpletwitterclient;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -8,7 +13,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
+import android.widget.Toast;
 
+import com.activeandroid.query.Select;
 import com.codepath.apps.simpletwitterclient.models.Tweet;
 import com.codepath.apps.simpletwitterclient.models.User;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -20,6 +27,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 public class TimelineActivity extends AppCompatActivity implements ComposeTweetDialog.ComposeTweetDialogListener {
 
@@ -56,28 +64,43 @@ public class TimelineActivity extends AppCompatActivity implements ComposeTweetD
         client = TwitterApplication.getRestClient();
         setupMoreTweetsHandler();
 
-        client.getCurrentUser(new JsonHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                currentUser = User.fromJson(response);
-            }
+        if (isNetworkConnected()) {
+            client.getCurrentUser(new JsonHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                    currentUser = User.fromJson(response);
 
-            @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                Log.d("DEBUG", errorResponse.toString());
-            }
-        });
+                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(TimelineActivity.this);
+                    SharedPreferences.Editor edit = preferences.edit();
+                    edit.putLong("user_id", currentUser.getUid());
+                    edit.commit();
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                    Log.d("DEBUG", errorResponse.toString());
+                }
+            });
+        } else {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+            long userId = preferences.getLong("user_id", -1);
+            currentUser = new Select()
+                    .from(User.class)
+                    .where("uid = ?", userId)
+                    .executeSingle();
+        }
 
         lvTweets.setOnScrollListener(new EndlessScrollListener() {
             @Override
             public boolean onLoadMore(int page, int totalItemCount) {
-                fetchOlderTweets();
-
-                return true; // only if more loaded, else return false
+                return fetchOlderTweets();
             }
         });
 
-        fetchOlderTweets();
+        boolean isFetching = fetchOlderTweets();
+        if (!isFetching) {
+            fetchTweetsFromDB();
+        }
     }
 
     private void setupMoreTweetsHandler() {
@@ -112,22 +135,55 @@ public class TimelineActivity extends AppCompatActivity implements ComposeTweetD
         };
     }
 
-    private void fetchOlderTweets() {
+    private boolean isNetworkConnected() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        boolean networkConnection = activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+        if (!networkConnection) {
+            showNoNetworkError();
+        }
+        return networkConnection;
+    }
+
+    private void showNoNetworkError() {
+        Toast.makeText(this, "You don't have an internet connection", Toast.LENGTH_SHORT).show();
+    }
+
+    private void fetchTweetsFromDB() {
+        aTweets.clear();
+        List<Tweet> storedTweets = new Select().from(Tweet.class)
+                .orderBy("uid DESC")
+                .execute();
+        aTweets.addAll(storedTweets);
+    }
+
+    private boolean fetchOlderTweets() {
         long oldestTweetUid = Long.MAX_VALUE;
         if (!tweets.isEmpty()) {
             oldestTweetUid = tweets.get(tweets.size() - 1).getUid();
         }
 
-        client.getHomeTimelineBefore(oldestTweetUid, moreTweetsHandler);
+        if (isNetworkConnected()) {
+            client.getHomeTimelineBefore(oldestTweetUid, moreTweetsHandler);
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    private void fetchNewerTweets() {
+    private boolean fetchNewerTweets() {
         long newestTweetUid = 0;
         if (!tweets.isEmpty()) {
             newestTweetUid = tweets.get(0).getUid();
         }
 
-        client.getHomeTimelineSince(newestTweetUid, moreTweetsHandler);
+        if (isNetworkConnected()) {
+            client.getHomeTimelineSince(newestTweetUid, moreTweetsHandler);
+            return true;
+        } else {
+            swipeContainer.setRefreshing(false);
+            return false;
+        }
     }
 
     @Override
@@ -146,6 +202,10 @@ public class TimelineActivity extends AppCompatActivity implements ComposeTweetD
     }
 
     private void composeTweet() {
+        if (!isNetworkConnected()) {
+            return;
+        }
+
         FragmentManager manager = getSupportFragmentManager();
         ComposeTweetDialog dialog = ComposeTweetDialog.newInstance(getString(R.string.tweet_fragment_title), currentUser);
         dialog.show(manager, "fragment_compose_tweet");
@@ -158,6 +218,9 @@ public class TimelineActivity extends AppCompatActivity implements ComposeTweetD
             return;
         }
 
+        if (!isNetworkConnected()) {
+            return;
+        }
         client.postTweet(inputText, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {

@@ -3,27 +3,53 @@ package com.codepath.apps.simpletwitterclient.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
+import com.activeandroid.query.Select;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
  * Created by nikhil on 10/1/15.
  */
-public class User implements Parcelable {
+@Table(name = "users")
+public class User extends Model implements Parcelable {
 
+    @Column(name = "name")
     private String name;
+
+    @Column(name = "uid", unique = true, onUniqueConflict = Column.ConflictAction.REPLACE)
     private long uid;
+
+    @Column(name = "screen_name")
     private String screenName;
+
+    @Column(name = "profile_image_url")
     private String profileImageUrl;
 
     public static User fromJson(JSONObject jsonUser) {
-        User u = new User();
+        User u = null;
 
         try {
+            long uid = jsonUser.getLong("id");
+            u = new Select()
+                    .from(User.class)
+                    .where("uid = ?", uid)
+                    .executeSingle();
+            if (u != null) {
+                return u;
+            }
+
+            u = new User();
+
             u.name = jsonUser.getString("name");
             u.uid = jsonUser.getLong("id");
             u.screenName = jsonUser.getString("screen_name");
             u.profileImageUrl = jsonUser.getString("profile_image_url");
+
+            u.save();
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -61,9 +87,12 @@ public class User implements Parcelable {
     }
 
     public User() {
+        super();
     }
 
     protected User(Parcel in) {
+        super();
+
         this.name = in.readString();
         this.uid = in.readLong();
         this.screenName = in.readString();
