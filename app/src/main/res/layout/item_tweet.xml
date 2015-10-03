@@ -27,13 +27,16 @@
         android:layout_toLeftOf="@+id/tvTimestamp"
         android:layout_toStartOf="@+id/tvTimestamp" />
 
-    <TextView
+    <com.codepath.apps.simpletwitterclient.LinkifiedTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/tvBody"
         android:layout_below="@+id/tvUsername"
         android:layout_toRightOf="@+id/ivProfileImage"
-        android:layout_toEndOf="@+id/ivProfileImage" />
+        android:layout_toEndOf="@+id/ivProfileImage"
+        android:autoLink="all"
+        android:linksClickable="true"
+        />
 
     <TextView
         android:layout_width="wrap_content"
