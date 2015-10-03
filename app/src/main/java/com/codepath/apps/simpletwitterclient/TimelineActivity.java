@@ -2,6 +2,7 @@ package com.codepath.apps.simpletwitterclient;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -28,6 +29,8 @@ public class TimelineActivity extends AppCompatActivity implements ComposeTweetD
     private ArrayList<Tweet> tweets;
     private ListView lvTweets;
 
+    private SwipeRefreshLayout swipeContainer;
+
     private User currentUser;
 
     private JsonHttpResponseHandler moreTweetsHandler;
@@ -42,6 +45,14 @@ public class TimelineActivity extends AppCompatActivity implements ComposeTweetD
         tweets = new ArrayList<>();
         aTweets = new TweetsArrayAdapter(this, tweets);
         lvTweets.setAdapter(aTweets);
+
+        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                fetchNewerTweets();
+            }
+        });
 
         client = TwitterApplication.getRestClient();
         setupMoreTweetsHandler();
@@ -90,11 +101,14 @@ public class TimelineActivity extends AppCompatActivity implements ComposeTweetD
                     }
                 });
                 aTweets.notifyDataSetChanged();
+
+                swipeContainer.setRefreshing(false);
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
                 Log.d("DEBUG", errorResponse.toString());
+                swipeContainer.setRefreshing(false);
             }
         };
     }
