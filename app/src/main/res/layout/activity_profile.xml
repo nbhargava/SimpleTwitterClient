@@ -42,7 +42,6 @@
             android:layout_below="@+id/tvName"
             android:layout_alignLeft="@+id/tvName"
             android:layout_alignStart="@+id/tvName"
-            android:layout_alignBottom="@+id/ivProfileImage"
             android:layout_margin="5dp"
             />
 
@@ -53,7 +52,7 @@
             android:layout_centerVertical="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:layout_below="@+id/ivProfileImage"
+            android:layout_below="@+id/tvTagline"
             >
 
             <TextView
