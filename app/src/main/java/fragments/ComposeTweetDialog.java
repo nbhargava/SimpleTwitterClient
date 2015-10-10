@@ -1,4 +1,4 @@
-package com.codepath.apps.simpletwitterclient;
+package fragments;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -14,6 +14,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.codepath.apps.simpletwitterclient.R;
 import com.codepath.apps.simpletwitterclient.models.User;
 import com.squareup.picasso.Picasso;
 

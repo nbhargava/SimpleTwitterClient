@@ -29,6 +29,15 @@ public class User extends Model implements Parcelable {
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
+    @Column(name = "tagline")
+    private String tagline;
+
+    @Column(name = "followers_count")
+    private int followersCount;
+
+    @Column(name = "following_count")
+    private int followingCount;
+
     public static User fromJson(JSONObject jsonUser) {
         User u = null;
 
@@ -48,6 +57,9 @@ public class User extends Model implements Parcelable {
             u.uid = jsonUser.getLong("id");
             u.screenName = jsonUser.getString("screen_name");
             u.profileImageUrl = jsonUser.getString("profile_image_url");
+            u.tagline = jsonUser.getString("description");
+            u.followersCount = jsonUser.getInt("followers_count");
+            u.followingCount = jsonUser.getInt("friends_count");
 
             u.save();
         } catch (JSONException e) {
@@ -73,6 +85,18 @@ public class User extends Model implements Parcelable {
         return profileImageUrl;
     }
 
+    public String getTagline() {
+        return tagline;
+    }
+
+    public int getFollowersCount() {
+        return followersCount;
+    }
+
+    public int getFollowingCount() {
+        return followingCount;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -84,19 +108,22 @@ public class User extends Model implements Parcelable {
         dest.writeLong(this.uid);
         dest.writeString(this.screenName);
         dest.writeString(this.profileImageUrl);
+        dest.writeString(this.tagline);
+        dest.writeInt(this.followersCount);
+        dest.writeInt(this.followingCount);
     }
 
     public User() {
-        super();
     }
 
     protected User(Parcel in) {
-        super();
-
         this.name = in.readString();
         this.uid = in.readLong();
         this.screenName = in.readString();
         this.profileImageUrl = in.readString();
+        this.tagline = in.readString();
+        this.followersCount = in.readInt();
+        this.followingCount = in.readInt();
     }
 
     public static final Creator<User> CREATOR = new Creator<User>() {
