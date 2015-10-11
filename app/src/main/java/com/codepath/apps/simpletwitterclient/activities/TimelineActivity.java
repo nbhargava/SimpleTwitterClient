@@ -109,6 +109,10 @@ public class TimelineActivity extends AppCompatActivity implements ComposeTweetD
     }
 
     private void showProfile() {
+        if (!isNetworkConnected()) {
+            return;
+        }
+
         Intent i = new Intent(this, ProfileActivity.class);
         i.putExtra("user", currentUser);
 
